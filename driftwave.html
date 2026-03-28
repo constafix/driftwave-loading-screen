@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Driftwave Loading Screen</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body { background: #020b16; }
+
+    .loading-screen {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      background: #020b16;
+    }
+
+    .ocean-stage {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: linear-gradient(180deg, #091a2d 0%, #081322 100%);
+    }
+
+    .sky,
+    .sky-glow,
+    .sun,
+    .moon,
+    .stars,
+    .wave-layer,
+    .ship {
+      position: absolute;
+    }
+
+    .sky,
+    .sky-glow,
+    .stars {
+      inset: 0;
+    }
+
+    .sky-day {
+      background:
+        radial-gradient(circle at 50% 18%, rgba(255, 233, 162, 0.65), transparent 18%),
+        linear-gradient(180deg, #86d7ff 0%, #4fa8f3 44%, #0c3b72 100%);
+      animation: dayFade 16s linear infinite;
+    }
+
+    .sky-night {
+      background:
+        radial-gradient(circle at 50% 24%, rgba(103, 144, 255, 0.18), transparent 20%),
+        linear-gradient(180deg, #040814 0%, #0b1630 46%, #10284a 100%);
+      animation: nightFade 16s linear infinite;
+    }
+
+    .sky-glow-day {
+      background:
+        radial-gradient(circle at 28% 24%, rgba(255, 205, 102, 0.42), transparent 12%),
+        radial-gradient(circle at 55% 56%, rgba(98, 208, 255, 0.16), transparent 22%);
+      animation: dayGlow 16s linear infinite;
+    }
+
+    .sky-glow-night {
+      background:
+        radial-gradient(circle at 70% 24%, rgba(232, 245, 255, 0.22), transparent 10%),
+        radial-gradient(circle at 54% 50%, rgba(88, 114, 220, 0.18), transparent 24%);
+      animation: nightGlow 16s linear infinite;
+    }
+
+    .sun,
+    .moon {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      top: 18%;
+      left: 16%;
+      filter: blur(0.2px);
+    }
+
+    .sun {
+      background:
+        radial-gradient(circle at 35% 35%, #fff8d1 0%, #ffe189 38%, #ffb84a 72%, rgba(255, 184, 74, 0.1) 100%);
+      box-shadow:
+        0 0 28px rgba(255, 203, 100, 0.55),
+        0 0 80px rgba(255, 185, 74, 0.28);
+      animation: sunCycle 16s linear infinite;
+    }
+
+    .moon {
+      left: 72%;
+      background:
+        radial-gradient(circle at 35% 35%, #ffffff 0%, #edf3ff 44%, #c7d4f8 100%);
+      box-shadow:
+        0 0 24px rgba(221, 236, 255, 0.36),
+        0 0 68px rgba(138, 174, 255, 0.16);
+      animation: moonCycle 16s linear infinite;
+    }
+
+    .stars {
+      animation: starsCycle 16s linear infinite;
+    }
+
+    .star {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #f9fcff;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+      animation: twinkle 2.8s ease-in-out infinite;
+    }
+
+    .star-1 { top: 16%; left: 19%; animation-delay: 0s; }
+    .star-2 { top: 11%; left: 34%; animation-delay: 0.5s; }
+    .star-3 { top: 22%; left: 48%; animation-delay: 1.1s; }
+    .star-4 { top: 14%; left: 63%; animation-delay: 1.8s; }
+    .star-5 { top: 28%; left: 78%; animation-delay: 0.9s; }
+    .star-6 { top: 20%; left: 86%; animation-delay: 2.2s; }
+
+    .scenery {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .scenery-item {
+      position: absolute;
+      left: 100%;
+      fill: currentColor;
+    }
+
+    .scenery-city {
+      width: 180px;
+      height: auto;
+      bottom: 38%;
+      color: rgba(8, 18, 38, 0.30);
+      animation: sceneryDrift 32s -8s linear infinite;
+    }
+
+    .scenery-island {
+      width: 110px;
+      height: auto;
+      bottom: 36%;
+      color: rgba(8, 18, 38, 0.22);
+      animation: sceneryDrift 26s -20s linear infinite;
+    }
+
+    .scenery-lighthouse {
+      width: 65px;
+      height: auto;
+      bottom: 37%;
+      color: rgba(8, 18, 38, 0.28);
+      animation: sceneryDrift 22s -2s linear infinite;
+    }
+
+    @keyframes sceneryDrift {
+      from { transform: translateX(0); }
+      to { transform: translateX(calc(-100% - 100vw)); }
+    }
+
+    .ocean-fill {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 45%;
+      background: linear-gradient(180deg, rgba(6, 28, 56, 0.0) 0%, rgba(4, 18, 42, 0.85) 15%, #030f20 50%);
+      pointer-events: none;
+    }
+
+    .wave-layer {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 10%;
+      width: 100%;
+      height: 30vh;
+      overflow: visible;
+    }
+
+    .wave-stroke {
+      fill: none;
+      stroke: #75d6ff;
+      stroke-width: 10;
+      stroke-linecap: round;
+      filter:
+        drop-shadow(0 0 10px rgba(94, 206, 255, 0.55))
+        drop-shadow(0 0 26px rgba(35, 126, 227, 0.24));
+    }
+
+    .ship {
+      left: 0;
+      top: 0;
+      width: clamp(170px, 22vw, 250px);
+      height: auto;
+      transform-origin: 50% 94.8%;
+      user-select: none;
+      pointer-events: none;
+      filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.28));
+    }
+
+    .loading-ui {
+      position: absolute;
+      bottom: 3vh;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      z-index: 10;
+    }
+
+    .helm {
+      width: 52px;
+      height: 52px;
+      animation: helmSpin 6s linear infinite;
+      filter: drop-shadow(0 0 8px rgba(94, 206, 255, 0.35));
+    }
+
+    .helm-ring {
+      fill: none;
+      stroke: #75d6ff;
+      stroke-width: 3;
+    }
+
+    .helm-hub {
+      fill: none;
+      stroke: #75d6ff;
+      stroke-width: 2.5;
+    }
+
+    .helm-spoke {
+      stroke: #75d6ff;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+    }
+
+    .helm-handle {
+      fill: none;
+      stroke: #75d6ff;
+      stroke-width: 2.5;
+    }
+
+    @keyframes helmSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      font-family: system-ui, sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 0.08em;
+      color: rgba(200, 230, 255, 0.55);
+    }
+
+    @keyframes dayFade {
+      0%, 20% { opacity: 1; }
+      30%, 70% { opacity: 0; }
+      80%, 100% { opacity: 1; }
+    }
+
+    @keyframes nightFade {
+      0%, 20% { opacity: 0; }
+      30%, 70% { opacity: 1; }
+      80%, 100% { opacity: 0; }
+    }
+
+    @keyframes dayGlow {
+      0%, 20% { opacity: 1; }
+      30%, 70% { opacity: 0; }
+      80%, 100% { opacity: 1; }
+    }
+
+    @keyframes nightGlow {
+      0%, 20% { opacity: 0; }
+      30%, 70% { opacity: 1; }
+      80%, 100% { opacity: 0; }
+    }
+
+    @keyframes sunCycle {
+      0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+      12%  { opacity: 1; transform: translate(110px, -34px) scale(1.05); }
+      25%  { opacity: 0; transform: translate(220px, 22px) scale(0.95); }
+      75%  { opacity: 0; transform: translate(-110px, 22px) scale(0.95); }
+      100% { opacity: 1; transform: translate(0, 0) scale(1); }
+    }
+
+    @keyframes moonCycle {
+      0%   { opacity: 0; transform: translate(-180px, 28px) scale(0.86); }
+      25%  { opacity: 0; transform: translate(-180px, 28px) scale(0.86); }
+      38%  { opacity: 1; transform: translate(0, 0) scale(0.92); }
+      55%  { opacity: 1; transform: translate(-120px, -26px) scale(1); }
+      70%  { opacity: 0; transform: translate(-220px, 16px) scale(0.9); }
+      100% { opacity: 0; transform: translate(-180px, 28px) scale(0.86); }
+    }
+
+    @keyframes starsCycle {
+      0%, 20% { opacity: 0; }
+      30%, 70% { opacity: 1; }
+      80%, 100% { opacity: 0; }
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.4; transform: scale(0.85); }
+      50%       { opacity: 1;   transform: scale(1.25); }
+    }
+
+    @media (max-width: 720px) {
+      .wave-layer {
+        height: 14vh;
+        bottom: 14%;
+      }
+
+      .ocean-fill {
+        height: 35%;
+      }
+
+      .ship {
+        width: clamp(90px, 24vw, 140px);
+      }
+
+      .wave-stroke {
+        stroke-width: 6;
+      }
+
+      .sun,
+      .moon {
+        width: 54px;
+        height: 54px;
+      }
+
+      .scenery-city      { width: 130px; bottom: 30%; }
+      .scenery-island    { width: 80px;  bottom: 28%; }
+      .scenery-lighthouse{ width: 48px;  bottom: 29%; }
+
+      .loading-ui {
+        bottom: 2vh;
+        white-space: nowrap;
+      }
+
+      .loading-text {
+        font-size: 0.78rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="loading-screen">
+    <section class="ocean-stage" id="stage" aria-hidden="true">
+      <div class="sky sky-day"></div>
+      <div class="sky sky-night"></div>
+      <div class="sky-glow sky-glow-day"></div>
+      <div class="sky-glow sky-glow-night"></div>
+      <div class="sun"></div>
+      <div class="moon"></div>
+      <div class="stars">
+        <span class="star star-1"></span>
+        <span class="star star-2"></span>
+        <span class="star star-3"></span>
+        <span class="star star-4"></span>
+        <span class="star star-5"></span>
+        <span class="star star-6"></span>
+      </div>
+
+      <div class="scenery">
+        <!-- Город -->
+        <svg class="scenery-item scenery-city" viewBox="0 0 160 100" preserveAspectRatio="xMidYMax meet">
+          <path d="M0 100 L0 72 L8 72 L8 48 L18 48 L18 66 L24 66 L24 40 L30 34 L36 40 L36 66 L44 66 L44 52 L54 52 L54 30 L64 30 L64 52 L72 52 L72 44 L78 44 L78 64 L86 64 L86 56 L96 56 L96 70 L104 70 L104 60 L112 60 L112 44 L118 44 L118 60 L126 60 L126 74 L140 74 L140 64 L148 64 L148 74 L160 74 L160 100 Z" />
+        </svg>
+
+        <!-- Остров с пальмой -->
+        <svg class="scenery-item scenery-island" viewBox="0 0 120 80" preserveAspectRatio="xMidYMax meet">
+          <path d="M0 80 Q30 52 60 48 Q90 52 120 80 Z" />
+          <path d="M55 48 C53 30 56 14 58 8" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" />
+          <path d="M58 8 Q72 0 84 10 M58 8 Q70 -6 80 2 M58 8 Q46 0 36 8 M58 8 Q48 -4 38 2" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+        </svg>
+
+        <!-- Маяк -->
+        <svg class="scenery-item scenery-lighthouse" viewBox="0 0 80 90" preserveAspectRatio="xMidYMax meet">
+          <path d="M0 90 Q12 72 28 65 Q38 60 40 58 Q42 60 52 65 Q68 72 80 90 Z" />
+          <path d="M36 58 L34 26 L46 26 L44 58 Z" />
+          <path d="M31 26 L49 26 L47 20 L33 20 Z" />
+          <circle cx="40" cy="14" r="6" />
+        </svg>
+      </div>
+
+      <div class="ocean-fill"></div>
+
+      <svg class="wave-layer" id="waveLayer" viewBox="0 0 1200 360" preserveAspectRatio="none">
+        <g id="waveGroup">
+          <path class="wave-stroke" id="wavePath" />
+        </g>
+      </svg>
+
+      <img class="ship" id="ship" alt="" />
+    </section>
+
+    <div class="loading-ui">
+      <svg class="helm" viewBox="0 0 100 100">
+        <circle class="helm-ring" cx="50" cy="50" r="32" />
+        <circle class="helm-hub"  cx="50" cy="50" r="8" />
+        <!-- 8 спиц через каждые 45° -->
+        <g><line class="helm-spoke" x1="60.00" y1="50.00" x2="82.00" y2="50.00"/><circle class="helm-handle" cx="90.00" cy="50.00" r="4.5"/></g>
+        <g><line class="helm-spoke" x1="57.07" y1="57.07" x2="72.63" y2="72.63"/><circle class="helm-handle" cx="78.28" cy="78.28" r="4.5"/></g>
+        <g><line class="helm-spoke" x1="50.00" y1="60.00" x2="50.00" y2="82.00"/><circle class="helm-handle" cx="50.00" cy="90.00" r="4.5"/></g>
+        <g><line class="helm-spoke" x1="42.93" y1="57.07" x2="27.37" y2="72.63"/><circle class="helm-handle" cx="21.72" cy="78.28" r="4.5"/></g>
+        <g><line class="helm-spoke" x1="40.00" y1="50.00" x2="18.00" y2="50.00"/><circle class="helm-handle" cx="10.00" cy="50.00" r="4.5"/></g>
+        <g><line class="helm-spoke" x1="42.93" y1="42.93" x2="27.37" y2="27.37"/><circle class="helm-handle" cx="21.72" cy="21.72" r="4.5"/></g>
+        <g><line class="helm-spoke" x1="50.00" y1="40.00" x2="50.00" y2="18.00"/><circle class="helm-handle" cx="50.00" cy="10.00" r="4.5"/></g>
+        <g><line class="helm-spoke" x1="57.07" y1="42.93" x2="72.63" y2="27.37"/><circle class="helm-handle" cx="78.28" cy="21.72" r="4.5"/></g>
+      </svg>
+      <p class="loading-text" id="phrase"></p>
+    </div>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script>
+    const SEGMENT_UNITS      = 200
+    const CONTROL_1_UNITS    = 75
+    const CONTROL_2_UNITS    = 125
+    const BASELINE_UNITS     = 208
+    const CREST_UNITS        = 150
+    const TROUGH_UNITS       = 266
+    const VIEWBOX_WIDTH      = 1200
+    const VIEWBOX_HEIGHT     = 360
+    const SEGMENT_COUNT      = 6
+    const LOOP_DURATION      = 4.8
+    const SHIP_CONTACT_X_RATIO = 0.5
+    const SHIP_CONTACT_Y_RATIO = 0.948
+    const LOOP_SEGMENTS      = 2
+    const SHIP_CONTACT_X_UNITS = VIEWBOX_WIDTH / 2
+    const WAVE_STROKE_UNITS  = 10
+
+    const SEA_PHRASES = [
+      'Catching the trade winds',
+      'Charting the course',
+      'Raising the anchor',
+      'Hoisting the sails',
+      'Assembling the crew',
+      'Dodging the storm',
+      'Reading the stars',
+      'Swabbing the deck',
+      'Tying the knots',
+      'Scanning the horizon',
+      'Steering through the fog',
+      'Loading the cannons',
+      'Checking the compass',
+      'Battening down the hatches',
+      'Trimming the mainsail',
+      'Sounding the depths',
+      'Setting sail at dawn',
+      'Riding the current',
+      'Navigating by the North Star',
+      'Keeping her steady',
+      'Sending a message in a bottle',
+      'Waving at the lighthouse',
+      'Taming the kraken',
+      'Counting the seagulls',
+      'Patching the hull',
+      'Polishing the telescope',
+      'Stocking the rum barrels',
+      'Whistling for the wind',
+      'Searching for buried treasure',
+      'Adjusting the rigging',
+      'Plotting the next port',
+      'Watching for mermaids',
+      'Braving the high seas',
+      'Unfurling the Jolly Roger',
+      'Learning the ropes',
+    ]
+
+    function pickRandom(arr, exclude) {
+      const filtered = arr.filter(item => item !== exclude)
+      return filtered[Math.floor(Math.random() * filtered.length)]
+    }
+
+    function buildWavePath() {
+      let path = `M ${-SEGMENT_UNITS} ${BASELINE_UNITS}`
+      for (let i = -1; i < SEGMENT_COUNT + 2; i++) {
+        const startX = i * SEGMENT_UNITS
+        const endX   = startX + SEGMENT_UNITS
+        const crestY  = i % 2 === 0 ? CREST_UNITS : TROUGH_UNITS
+        path += ` C ${startX + CONTROL_1_UNITS} ${crestY} ${startX + CONTROL_2_UNITS} ${crestY} ${endX} ${BASELINE_UNITS}`
+      }
+      return path
+    }
+
+    function getPathPointAtX(path, targetX) {
+      const totalLength = path.getTotalLength()
+      let start = 0
+      let end   = totalLength
+
+      for (let i = 0; i < 24; i++) {
+        const middle = (start + end) / 2
+        const point  = path.getPointAtLength(middle)
+        if (point.x < targetX) start = middle
+        else                    end   = middle
+      }
+
+      const length    = (start + end) / 2
+      const point     = path.getPointAtLength(length)
+      const prevPoint = path.getPointAtLength(Math.max(0, length - 1.5))
+      const nextPoint = path.getPointAtLength(Math.min(totalLength, length + 1.5))
+
+      return {
+        x: point.x,
+        y: point.y,
+        angle: (Math.atan2(nextPoint.y - prevPoint.y, nextPoint.x - prevPoint.x) * 180) / Math.PI,
+      }
+    }
+
+    // --- Корабль: SVG как data URI, чтобы offsetWidth/offsetHeight работали как у <img> ---
+    const shipSvgMarkup = `<svg width="420" height="320" viewBox="0 0 420 320" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M201 42L198 232" stroke="%230A1626" stroke-width="10" stroke-linecap="round"/><path d="M196 58C195 92 182 166 96 228H196V58Z" fill="%23F8FBFF" stroke="%230A1626" stroke-width="6" stroke-linejoin="round"/><path d="M206 34C239 82 284 155 311 229H206V34Z" fill="%23F8FBFF" stroke="%230A1626" stroke-width="6" stroke-linejoin="round"/><path d="M102 231H323L280 282C262 294 238 301 212 301H176C148 301 123 292 105 276L83 249C78 244 81 236 89 233L102 231Z" fill="%23B56B3D" stroke="%230A1626" stroke-width="6" stroke-linejoin="round"/><path d="M141 231H294" stroke="%230A1626" stroke-width="6" stroke-linecap="round"/><path d="M217 17C240 24 251 31 268 46C248 48 230 44 213 35L217 17Z" fill="%23ffcc33" stroke="%230A1626" stroke-width="6" stroke-linejoin="round"/></svg>`
+    document.getElementById('ship').src = 'data:image/svg+xml,' + shipSvgMarkup
+
+    // --- Инициализация ---
+    const stage      = document.getElementById('stage')
+    const waveLayer  = document.getElementById('waveLayer')
+    const waveGroup  = document.getElementById('waveGroup')
+    const wavePath   = document.getElementById('wavePath')
+    const ship       = document.getElementById('ship')
+    const phraseEl   = document.getElementById('phrase')
+
+    wavePath.setAttribute('d', buildWavePath())
+
+    let currentPhrase = pickRandom(SEA_PHRASES, null)
+    phraseEl.textContent = currentPhrase
+
+    // --- Волна и корабль ---
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const phaseState = { value: 0 }
+
+    function render() {
+      const waveRect  = waveLayer.getBoundingClientRect()
+      const stageRect = stage.getBoundingClientRect()
+      const shipWidth  = ship.offsetWidth
+      const shipHeight = ship.offsetHeight
+
+      if (!waveRect.width || !waveRect.height || !shipWidth || !shipHeight) return
+
+      const normalizedXUnits = SHIP_CONTACT_X_UNITS - phaseState.value
+      const { y, angle } = getPathPointAtX(wavePath, normalizedXUnits)
+
+      const waveSurfaceY   = (y / VIEWBOX_HEIGHT) * waveRect.height
+      const shipContactX   = (SHIP_CONTACT_X_UNITS / VIEWBOX_WIDTH) * waveRect.width
+      const waveStrokeOff  = (WAVE_STROKE_UNITS / VIEWBOX_HEIGHT) * waveRect.height * 0.5
+      const waveOffsetTop  = waveRect.top - stageRect.top
+
+      gsap.set(waveGroup, {
+        attr: { transform: `translate(${phaseState.value} 0)` },
+      })
+      gsap.set(ship, {
+        left:     shipContactX - shipWidth  * SHIP_CONTACT_X_RATIO,
+        top:      waveOffsetTop + waveSurfaceY - waveStrokeOff - shipHeight * SHIP_CONTACT_Y_RATIO,
+        rotation: angle * 0.92,
+      })
+    }
+
+    render()
+
+    if (!mediaQuery.matches) {
+      gsap.to(phaseState, {
+        value:    -(SEGMENT_UNITS * LOOP_SEGMENTS),
+        duration: LOOP_DURATION,
+        ease:     'none',
+        repeat:   -1,
+        onUpdate: render,
+      })
+
+      gsap.ticker.add(render)
+    }
+
+    // --- Фразы ---
+    const phraseTl = gsap.timeline({ repeat: -1, delay: 0.5 })
+
+    phraseTl
+      .to(phraseEl, { opacity: 0, y: -6, duration: 0.35, ease: 'power2.in' })
+      .call(() => {
+        currentPhrase = pickRandom(SEA_PHRASES, currentPhrase)
+        phraseEl.textContent = currentPhrase
+      })
+      .set(phraseEl, { y: 6 })
+      .to(phraseEl, { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' })
+      .to({}, { duration: 2.8 })
+  </script>
+</body>
+</html>
